@@ -9,8 +9,7 @@
 import Foundation
 import CoreData
 
-protocol IncrementalStorageProtocol {
-    
+public protocol IncrementalStorageProtocol {
     /**
         Returns objects from storage. [AnyObject]? is array of keys of objects in storage. Return persons getting from newEntityCreator
     
@@ -67,7 +66,7 @@ protocol IncrementalStorageProtocol {
 }
 
 class PersistanceStore: NSIncrementalStore {
-    let storage : IncrementalStorageProtocol = PersonJobCityParseStorage()
+    var storage: IncrementalStorageProtocol! // = PersonJobCityParseStorage()
     var correspondenceTable = [String: NSManagedObjectID]()
     
     override class func initialize() {

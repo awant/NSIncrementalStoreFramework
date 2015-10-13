@@ -13,6 +13,8 @@ public class CoreDataManager {
     public static let sharedManager = CoreDataManager()
     var persistantStore: PersistanceStore!
     
+    public var storage : IncrementalStorageProtocol!
+    
     lazy var applicationDocumentsDirectory: NSURL = {
         // The directory the application uses to store the Core Data store file. This code uses a directory named "com.parallels.ResultsFetcher" in the application's documents Application Support directory.
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
@@ -36,6 +38,7 @@ public class CoreDataManager {
             // WARNING: This should be changed for work on specific core data - type!
             // url - where we keep our database locally (can be nil)
             self.persistantStore = try coordinator!.addPersistentStoreWithType(PersistanceStore.type, configuration: nil, URL: url, options: nil) as? PersistanceStore
+            self.persistantStore.storage = self.storage
         } catch {
             // Report any error we got.
             var dict = [String: AnyObject]()

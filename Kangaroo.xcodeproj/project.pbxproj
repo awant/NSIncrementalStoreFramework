@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		84C658C81BCCF3240005CC62 /* Kangaroo.h in Headers */ = {isa = PBXBuildFile; fileRef = 84C658C71BCCF3240005CC62 /* Kangaroo.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658D61BCCF4200005CC62 /* PersistanceStore.swift */; settings = {ASSET_TAGS = (); }; };
-		84C658D91BCCF42E0005CC62 /* PersonJobCityStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658D81BCCF42E0005CC62 /* PersonJobCityStorage.swift */; settings = {ASSET_TAGS = (); }; };
 		84C658DB1BCCF4AB0005CC62 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658DA1BCCF4AB0005CC62 /* CoreDataStack.swift */; settings = {ASSET_TAGS = (); }; };
 		84C658DD1BCCF7CB0005CC62 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84C658DC1BCCF7CB0005CC62 /* AudioToolbox.framework */; };
 		84C658DF1BCCF7D40005CC62 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84C658DE1BCCF7D40005CC62 /* CFNetwork.framework */; };
@@ -31,7 +30,6 @@
 		84C658C71BCCF3240005CC62 /* Kangaroo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Kangaroo.h; sourceTree = "<group>"; };
 		84C658C91BCCF3240005CC62 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84C658D61BCCF4200005CC62 /* PersistanceStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistanceStore.swift; sourceTree = "<group>"; };
-		84C658D81BCCF42E0005CC62 /* PersonJobCityStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonJobCityStorage.swift; sourceTree = "<group>"; };
 		84C658DA1BCCF4AB0005CC62 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		84C658DC1BCCF7CB0005CC62 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		84C658DE1BCCF7D40005CC62 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
@@ -97,7 +95,6 @@
 				84C658C71BCCF3240005CC62 /* Kangaroo.h */,
 				84C658DA1BCCF4AB0005CC62 /* CoreDataStack.swift */,
 				84C658D61BCCF4200005CC62 /* PersistanceStore.swift */,
-				84C658D81BCCF42E0005CC62 /* PersonJobCityStorage.swift */,
 				84C658C91BCCF3240005CC62 /* Info.plist */,
 			);
 			path = Kangaroo;
@@ -220,7 +217,6 @@
 			files = (
 				84C658DB1BCCF4AB0005CC62 /* CoreDataStack.swift in Sources */,
 				84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */,
-				84C658D91BCCF42E0005CC62 /* PersonJobCityStorage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
