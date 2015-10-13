@@ -161,6 +161,7 @@
 				TargetAttributes = {
 					84C658C31BCCF3240005CC62 = {
 						CreatedOnToolsVersion = 7.0;
+						DevelopmentTeam = U28C8RU59A;
 					};
 				};
 			};
@@ -315,6 +316,7 @@
 		84C658CD1BCCF3240005CC62 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -330,12 +332,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mipt.Kangaroo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		84C658CE1BCCF3240005CC62 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -351,6 +355,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mipt.Kangaroo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
