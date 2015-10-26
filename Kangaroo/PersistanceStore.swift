@@ -9,64 +9,30 @@
 import Foundation
 import CoreData
 
-public protocol IncrementalStorageProtocol {
-    /**
-        Returns objects from storage. [AnyObject]? is array of keys of objects in storage. Return persons getting from newEntityCreator
-    
-        :param: entityName the Name of entity to create
-        :param: sortDescriptors how can we want to sort objects
-        :param: newEntityCreator function, which get (entityName, local keys of objects) for create
-        :returns: objects from storage (empty for a while)
-    */
-    func fetchRecords(entityName: String, relatedEntitiesNames: [String]?, sortDescriptors: [NSSortDescriptor]?, newEntityCreator: (String, [AnyObject]?) -> AnyObject) -> AnyObject?
-    
-    /** 
-        Get values and version of object in storage identified by key
-    
-        :param: key local identifier of object
-        :returns: values and version of object
-    */
-    func valueAndVersion(key: String, fromField field: String) -> AnyObject?
-    
-    /** 
-        Create new empty object in storage and return key of it
-    
-        :returns: key of new object
-    */
-    func getKeyOfNewObjectWithEntityName(entityName: String) -> AnyObject
-    
-    /** 
-        Save record in storage and return nil if can't
-        
-        :param: objectForSave representation of object in storage
-        :param: key local identifier of object
-        :returns: nil, if can't save
-    */
-    func saveRecord(key: String, dictOfAttribs: [String:AnyObject], dictOfRelats: [String:[String]]) -> AnyObject?
-    
-    /** 
-        Update record in storage and return nil if can't
-    
-        :param: objectForUpdate representation of object in storage
-        :param: key local identifier of object
-        :returns: nil, if can't update
-    */
-    func updateRecord(objectForUpdate: AnyObject, key: AnyObject) -> AnyObject?
-    
-    /** 
-        Delete record in storage and return nil if can't
-    
-        :param: objectForDelete representation of object in storage
-        :param: key local identifier of object
-        :returns: nil, if can't delete
-    */
-    func deleteRecord(objectForDelete: AnyObject, key: AnyObject) -> AnyObject?
-    
-    func getKeyOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject?
+public
+class PersistanceStoreRegistry {
+    static let sharedInstance = PersistanceStoreRegistry()
+    var store: IncrementalStorageProtocol?
+    public class func register(store: IncrementalStorageProtocol, coordinator: NSPersistentStoreCoordinator, fileURL: NSURL) throws {
+        PersistanceStoreRegistry.sharedInstance.store = store
+        do {
+            try coordinator.addPersistentStoreWithType(PersistanceStore.type, configuration: nil, URL: fileURL, options: nil)
+        } catch let error as NSError {
+            throw error
+        }
+    }
 }
 
+
 class PersistanceStore: NSIncrementalStore {
-    var storage: IncrementalStorageProtocol! // = PersonJobCityParseStorage()
+    var storage: IncrementalStorageProtocol {
+        guard let storage = PersistanceStoreRegistry.sharedInstance.store else {
+            assertionFailure("Persistance store does not storage implementation")
+            abort()
+        }
+        return storage
+    }
+    
     var correspondenceTable = [String: NSManagedObjectID]()
     
     override class func initialize() {
