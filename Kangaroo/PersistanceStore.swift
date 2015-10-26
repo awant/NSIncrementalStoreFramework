@@ -117,7 +117,7 @@ class PersistanceStore: NSIncrementalStore {
             return nil
         }
         var relatedEntitiesNames: [String]?
-        guard let properties = ((request as? NSFetchRequest)?.entity?.properties) else {
+        guard let properties = (request as? NSFetchRequest)?.entity?.properties else {
             return nil
         }
         relatedEntitiesNames = [String]()

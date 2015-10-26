@@ -8,8 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		84C658C81BCCF3240005CC62 /* Kangaroo.h in Headers */ = {isa = PBXBuildFile; fileRef = 84C658C71BCCF3240005CC62 /* Kangaroo.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658D61BCCF4200005CC62 /* PersistanceStore.swift */; settings = {ASSET_TAGS = (); }; };
-		84C658DB1BCCF4AB0005CC62 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658DA1BCCF4AB0005CC62 /* CoreDataStack.swift */; settings = {ASSET_TAGS = (); }; };
+		84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658D61BCCF4200005CC62 /* PersistanceStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -137,7 +136,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				84C658DB1BCCF4AB0005CC62 /* CoreDataStack.swift in Sources */,
 				84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
