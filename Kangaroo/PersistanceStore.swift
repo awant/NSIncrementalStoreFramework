@@ -23,7 +23,6 @@ class PersistanceStoreRegistry {
     }
 }
 
-
 class PersistanceStore: NSIncrementalStore {
     var storage: IncrementalStorageProtocol {
         guard let storage = PersistanceStoreRegistry.sharedInstance.store else {
