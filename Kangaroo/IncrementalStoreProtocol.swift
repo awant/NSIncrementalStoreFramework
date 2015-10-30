@@ -19,7 +19,7 @@ protocol IncrementalStorageProtocol {
      - parameter newEntityCreator: function, which get (entityName, local keys of objects) for create
      - returns: objects from storage (empty for a while)
      */
-    func fetchRecords(entityName: String, relatedEntitiesNames: [String]?, sortDescriptors: [NSSortDescriptor]?, newEntityCreator: (String, [AnyObject]?) -> AnyObject) -> AnyObject?
+    func fetchRecords(entityName: String, relatedEntitiesNames: [String]?, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?, newEntityCreator: [String] -> [AnyObject]) -> AnyObject?
     
     /**
      Get values and version of object in storage identified by key
@@ -41,27 +41,24 @@ protocol IncrementalStorageProtocol {
      
      - parameter objectForSave: representation of object in storage
      - parameter key: local identifier of object
-     - returns: nil, if can't save
      */
-    func saveRecord(key: String, dictOfAttribs: [String:AnyObject], dictOfRelats: [String:[String]]) -> AnyObject?
+    func saveRecord(key: String, dictOfAttribs: [String : AnyObject], dictOfRelats: [String : [String]])
     
     /**
      Update record in storage and return nil if can't
      
      - parameter objectForUpdate: representation of object in storage
      - parameter key: local identifier of object
-     - returns: nil, if can't update
      */
-    func updateRecord(objectForUpdate: AnyObject, key: AnyObject) -> AnyObject?
+    func updateRecord(objectForUpdate: AnyObject, key: AnyObject, dictOfAttribs: [String : AnyObject], dictOfRelats: [String : [String]])
     
     /**
      Delete record in storage and return nil if can't
      
      - parameter objectForDelete: representation of object in storage
      - parameter key: local identifier of object
-     - returns: nil, if can't delete
      */
-    func deleteRecord(objectForDelete: AnyObject, key: AnyObject) -> AnyObject?
+    func deleteRecord(objectForDelete: AnyObject, key: AnyObject)
     
-    func getKeyOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject?
+    func getKeyOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject
 }
