@@ -64,8 +64,7 @@ class PersistanceStore: NSIncrementalStore {
             return keys.map({ self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: $0) } )
         } else {
             let key = storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
-            let objectID = self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key)
-            return objectID
+            return self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key)
         }
     }
     
