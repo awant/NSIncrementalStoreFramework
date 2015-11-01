@@ -51,7 +51,7 @@ class PersistanceStore: NSIncrementalStore {
         let key: String = self.referenceObjectForObjectID(objectID) as! String
         for property in objectID.entity.properties {
             if let fieldProperty = property as? NSAttributeDescription {
-                values[fieldProperty.name] = self.storage.valueAndVersion(key, fromField: fieldProperty.name)
+                values[fieldProperty.name] = storage.valueAndVersion(key, fromField: fieldProperty.name)
             }
         }
         return NSIncrementalStoreNode(objectID: objectID, withValues: values, version: 1)
@@ -88,36 +88,22 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     func executeFetchRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) -> AnyObject? {
-        guard let entityName = (request as? NSFetchRequest)?.entityName else {
+        guard let fr = request as? NSFetchRequest, entityName = fr.entityName,  properties = fr.entity?.properties else {
             return nil
         }
-        var relatedEntitiesNames: [String]?
-        guard let properties = (request as? NSFetchRequest)?.entity?.properties else {
-            return nil
-        }
-        relatedEntitiesNames = [String]()
-        for property in properties {
-            if let relProperty = property as? NSRelationshipDescription {
-                relatedEntitiesNames!.append(relProperty.name)
-            }
-        }
-        guard let sD = (request as? NSFetchRequest)?.sortDescriptors else {
-            return nil
-        }
+
+        let relatedEntitiesNames = properties.filter({ $0 as? NSRelationshipDescription != nil }).map({ $0.name })
+
         // work with context
-        let managedObjectsCreator: (String, [AnyObject]?) -> AnyObject = { (name, keys) in
-            let entityDescription = NSEntityDescription.entityForName(name, inManagedObjectContext: context)!
-            if let keys = keys {
-                let returningObjects = keys.map { (let key) -> NSManagedObject in
-                    let objectID = self.newObjectIDForEntity(entityDescription, referenceObject: key)
-                    return context.objectWithID(objectID)
-                }
-                return returningObjects
+        let managedObjectsCreator: [String] -> [AnyObject] = { keys in
+            let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context)!
+            return keys.map { key in
+                let objectID = self.newObjectIDForEntity(entityDescription, referenceObject: key)
+                return context.objectWithID(objectID)
             }
-            return []
         }
         
-        return self.storage.fetchRecords(entityName, relatedEntitiesNames: relatedEntitiesNames, sortDescriptors: sD, newEntityCreator: managedObjectsCreator)
+        return storage.fetchRecords(entityName, relatedEntitiesNames: relatedEntitiesNames, predicate: fr.predicate, sortDescriptors: fr.sortDescriptors, newEntityCreator: managedObjectsCreator)
     }
     
     override func obtainPermanentIDsForObjects(array: [NSManagedObject]) throws -> [NSManagedObjectID] {
@@ -129,36 +115,54 @@ class PersistanceStore: NSIncrementalStore {
         return permanentIDs
     }
     
+    func objectStorageID(object: NSManagedObject) -> String {
+        return referenceObjectForObjectID(object.objectID) as! String
+    }
+    
+    func objectDictionaryOfRelationShips(object: NSManagedObject) -> [String : [String]] {
+        let relationShipProperties = object.entity.properties.filter({ $0 as? NSRelationshipDescription != nil })
+        return relationShipProperties.reduce([String : [String]]()) { (var previousValue, property) in
+            previousValue[property.name] = object.objectIDsForRelationshipNamed(property.name).map {
+                self.referenceObjectForObjectID($0) as! String
+            }
+            return previousValue
+        }
+    }
+    
+    func objectDictionaryOfAttributes(object: NSManagedObject) -> [String : AnyObject] {
+        let attributes = object.entity.properties.filter({ $0 as? NSAttributeDescription != nil })
+        return attributes.reduce([:]) { (var previousValue: [String : AnyObject], propertyDescription) -> [String : AnyObject] in
+            if let propertyValue = object.valueForKey(propertyDescription.name) {
+                previousValue[propertyDescription.name] = propertyValue
+            }
+            return previousValue
+        }
+    }
+    
     func executeSaveRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) -> AnyObject? {
-        var dictOfAttribs: [String:AnyObject]?
-        var dictOfRelats: [String:[String]]?
-        
-        if let objectsForSave = (request as! NSSaveChangesRequest).insertedObjects {
+        guard let saveRequest = request as? NSSaveChangesRequest else {
+            return nil
+        }
+
+        if let objectsForSave = saveRequest.insertedObjects {
             for newObject in objectsForSave {
-                dictOfAttribs = [String:AnyObject]()
-                dictOfRelats = [String:[String]]()
-                let key = self.referenceObjectForObjectID(newObject.objectID) as! String
-                for property in newObject.entity.properties {
-                    if let relProperty = property as? NSRelationshipDescription {
-                        dictOfRelats![relProperty.name] =
-                            newObject.objectIDsForRelationshipNamed(relProperty.name).map { (let objectID) -> String in
-                                return (self.referenceObjectForObjectID(objectID) as! String)
-                        }
-                    } else if let attribProperty = property as? NSAttributeDescription {
-                        dictOfAttribs![attribProperty.name] = newObject.valueForKey(attribProperty.name)
-                    }
-                }
-                self.storage.saveRecord(key, dictOfAttribs: dictOfAttribs!, dictOfRelats: dictOfRelats!)
+                let attributes = self.objectDictionaryOfAttributes(newObject)
+                let relations = self.objectDictionaryOfRelationShips(newObject)
+                let key = objectStorageID(newObject)
+                storage.saveRecord(key, dictOfAttribs: attributes, dictOfRelats: relations)
             }
         }
-        if let objectsForUpdate = (request as! NSSaveChangesRequest).updatedObjects {
+        if let objectsForUpdate = saveRequest.updatedObjects {
             for updatedObject in objectsForUpdate {
-                self.storage.updateRecord(updatedObject, key: self.referenceObjectForObjectID(updatedObject.objectID) as! String)
+                let key = objectStorageID(updatedObject)
+                let attributes = self.objectDictionaryOfAttributes(updatedObject)
+                let relations = self.objectDictionaryOfRelationShips(updatedObject)
+                storage.updateRecord(updatedObject, key: key, dictOfAttribs: attributes, dictOfRelats: relations)
             }
         }
-        if let objectsForDelete = (request as! NSSaveChangesRequest).deletedObjects {
+        if let objectsForDelete = saveRequest.deletedObjects {
             for deletedObject in objectsForDelete {
-                self.storage.deleteRecord(deletedObject, key: self.referenceObjectForObjectID(deletedObject.objectID) as! String)
+                storage.deleteRecord(deletedObject, key: objectStorageID(deletedObject))
             }
         }
         return []
