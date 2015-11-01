@@ -58,9 +58,19 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     override func newValueForRelationship(relationship: NSRelationshipDescription, forObjectWithID objectID: NSManagedObjectID, withContext context: NSManagedObjectContext?) throws -> AnyObject {
-        let key = self.storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
-        let objectID = self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key!)
-        return  objectID
+        let keys = self.storage.getKeysOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
+        //TODO: We should check on existing, probably
+        if relationship.toMany {
+            let keysArray = (keys as! NSArray)
+            var objectIDs: Array = [NSManagedObjectID]()
+            for key in keysArray {
+                objectIDs.append(self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key))
+            }
+            return (objectIDs as NSArray)
+        } else {
+            let objectID = self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: keys!)
+            return objectID
+        }
     }
     
     override func executeRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext?) throws -> AnyObject {

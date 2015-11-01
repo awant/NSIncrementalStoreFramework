@@ -63,5 +63,12 @@ protocol IncrementalStorageProtocol {
      */
     func deleteRecord(objectForDelete: AnyObject, key: AnyObject) -> AnyObject?
     
-    func getKeyOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject?
+    /**
+     Get keys of referenced objects.
+     
+     - parameter keyObject: local identifier of object
+     - parameter fieldName: name of this reference
+     - returns: key(String) or keys(Array) from this field of object
+     */
+    func getKeysOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject?
 }
