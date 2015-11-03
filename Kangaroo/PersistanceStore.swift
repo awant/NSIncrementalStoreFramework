@@ -32,7 +32,8 @@ class PersistanceStore: NSIncrementalStore {
         return storage
     }
     
-    var correspondenceTable = [String: NSManagedObjectID]()
+    // Only for predicates
+    var correspondenceTable = [String: String]()
     
     override class func initialize() {
         NSPersistentStoreCoordinator.registerStoreClass(self, forStoreType: self.type)
@@ -51,25 +52,20 @@ class PersistanceStore: NSIncrementalStore {
         let key: String = self.referenceObjectForObjectID(objectID) as! String
         for property in objectID.entity.properties {
             if let fieldProperty = property as? NSAttributeDescription {
-                values[fieldProperty.name] = storage.valueAndVersion(key, fromField: fieldProperty.name)
+                values[fieldProperty.name] = self.storage.valueAndVersion(key, fromField: fieldProperty.name)
             }
         }
         return NSIncrementalStoreNode(objectID: objectID, withValues: values, version: 1)
     }
     
     override func newValueForRelationship(relationship: NSRelationshipDescription, forObjectWithID objectID: NSManagedObjectID, withContext context: NSManagedObjectContext?) throws -> AnyObject {
-        let keys = self.storage.getKeysOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
-        //TODO: We should check on existing, probably
+        
         if relationship.toMany {
-            let keysArray = (keys as! NSArray)
-            var objectIDs: Array = [NSManagedObjectID]()
-            for key in keysArray {
-                objectIDs.append(self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key))
-            }
-            return (objectIDs as NSArray)
+            let keys = storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name) as! [AnyObject]
+            return keys.map({ self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: $0) } )
         } else {
-            let objectID = self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: keys!)
-            return objectID
+            let key = storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
+            return self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key)
         }
     }
     
@@ -87,23 +83,38 @@ class PersistanceStore: NSIncrementalStore {
         }
     }
     
+    
+    func getPredicateWithTranslatedIds(basicPredicate: NSPredicate) -> NSPredicate {
+        var wordsOfPredicate = basicPredicate.predicateFormat.componentsSeparatedByString(" ")
+        for i in 0...wordsOfPredicate.count-2 {
+            let objectIdDescription = wordsOfPredicate[i...i+1].joinWithSeparator(" ")
+            if let key = correspondenceTable[objectIdDescription] {
+                wordsOfPredicate.removeAtIndex(i)
+                wordsOfPredicate[i] = key
+            }
+        }
+        return self.storage.predicateProcessing(wordsOfPredicate.joinWithSeparator(" "))
+    }
+    
     func executeFetchRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) -> AnyObject? {
-        guard let fr = request as? NSFetchRequest, entityName = fr.entityName,  properties = fr.entity?.properties else {
+        guard let fr = request as? NSFetchRequest, entityName = fr.entityName else {
             return nil
         }
-
-        let relatedEntitiesNames = properties.filter({ $0 as? NSRelationshipDescription != nil }).map({ $0.name })
 
         // work with context
         let managedObjectsCreator: [String] -> [AnyObject] = { keys in
             let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context)!
             return keys.map { key in
                 let objectID = self.newObjectIDForEntity(entityDescription, referenceObject: key)
+                self.correspondenceTable[objectID.description] = key
                 return context.objectWithID(objectID)
             }
         }
-        
-        return storage.fetchRecords(entityName, relatedEntitiesNames: relatedEntitiesNames, predicate: fr.predicate, sortDescriptors: fr.sortDescriptors, newEntityCreator: managedObjectsCreator)
+        var predicateForStorage = fr.predicate
+        if let predicate = fr.predicate {
+            predicateForStorage = getPredicateWithTranslatedIds(predicate)
+        }
+        return storage.fetchRecords(entityName, predicate: predicateForStorage, sortDescriptors: fr.sortDescriptors, newEntityCreator: managedObjectsCreator)
     }
     
     override func obtainPermanentIDsForObjects(array: [NSManagedObject]) throws -> [NSManagedObjectID] {

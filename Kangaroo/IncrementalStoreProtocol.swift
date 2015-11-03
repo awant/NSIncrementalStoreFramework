@@ -19,7 +19,7 @@ protocol IncrementalStorageProtocol {
      - parameter newEntityCreator: function, which get (entityName, local keys of objects) for create
      - returns: objects from storage (empty for a while)
      */
-    func fetchRecords(entityName: String, relatedEntitiesNames: [String]?, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?, newEntityCreator: [String] -> [AnyObject]) -> AnyObject?
+    func fetchRecords(entityName: String, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?, newEntityCreator: [String] -> [AnyObject]) -> AnyObject?
     
     /**
      Get values and version of object in storage identified by key
@@ -67,5 +67,14 @@ protocol IncrementalStorageProtocol {
      - parameter fieldName: name of this reference
      - returns: key(String) or keys(Array) from this field of object
      */
-    func getKeysOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject?
+    func getKeyOfDestFrom(keyObject: String , to fieldName: String) -> AnyObject
+    
+    func predicateProcessing(basicPredicateInString: String) -> NSPredicate
+}
+
+public
+extension IncrementalStorageProtocol {
+    func predicateProcessing(basicPredicateInString: String) -> NSPredicate {
+        return NSPredicate(value: true)
+    }
 }
