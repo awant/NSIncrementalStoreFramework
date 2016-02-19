@@ -10,6 +10,10 @@
 		637D44081BDE7127009B9D12 /* IncrementalStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637D44071BDE7127009B9D12 /* IncrementalStoreProtocol.swift */; };
 		84C658C81BCCF3240005CC62 /* Kangaroo.h in Headers */ = {isa = PBXBuildFile; fileRef = 84C658C71BCCF3240005CC62 /* Kangaroo.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C658D61BCCF4200005CC62 /* PersistanceStore.swift */; };
+		84F5E0981C64C4CA00510A29 /* BackingStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F5E0971C64C4CA00510A29 /* BackingStack.swift */; };
+		84F5E0BE1C69F71C00510A29 /* SimpleCoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F5E0BD1C69F71C00510A29 /* SimpleCoreDataStack.swift */; };
+		84F5E0C01C69F78400510A29 /* CoreDataConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F5E0BF1C69F78400510A29 /* CoreDataConfig.swift */; };
+		84F5E0C21C6A003100510A29 /* CoreDataRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F5E0C11C6A003100510A29 /* CoreDataRepresentable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +22,10 @@
 		84C658C71BCCF3240005CC62 /* Kangaroo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Kangaroo.h; sourceTree = "<group>"; };
 		84C658C91BCCF3240005CC62 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84C658D61BCCF4200005CC62 /* PersistanceStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistanceStore.swift; sourceTree = "<group>"; };
+		84F5E0971C64C4CA00510A29 /* BackingStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackingStack.swift; sourceTree = "<group>"; };
+		84F5E0BD1C69F71C00510A29 /* SimpleCoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleCoreDataStack.swift; sourceTree = "<group>"; };
+		84F5E0BF1C69F78400510A29 /* CoreDataConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataConfig.swift; sourceTree = "<group>"; };
+		84F5E0C11C6A003100510A29 /* CoreDataRepresentable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataRepresentable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,8 +59,12 @@
 			isa = PBXGroup;
 			children = (
 				84C658C71BCCF3240005CC62 /* Kangaroo.h */,
-				84C658D61BCCF4200005CC62 /* PersistanceStore.swift */,
 				637D44071BDE7127009B9D12 /* IncrementalStoreProtocol.swift */,
+				84C658D61BCCF4200005CC62 /* PersistanceStore.swift */,
+				84F5E0971C64C4CA00510A29 /* BackingStack.swift */,
+				84F5E0BD1C69F71C00510A29 /* SimpleCoreDataStack.swift */,
+				84F5E0BF1C69F78400510A29 /* CoreDataConfig.swift */,
+				84F5E0C11C6A003100510A29 /* CoreDataRepresentable.swift */,
 				84C658C91BCCF3240005CC62 /* Info.plist */,
 			);
 			path = Kangaroo;
@@ -139,6 +151,10 @@
 			files = (
 				637D44081BDE7127009B9D12 /* IncrementalStoreProtocol.swift in Sources */,
 				84C658D71BCCF4200005CC62 /* PersistanceStore.swift in Sources */,
+				84F5E0981C64C4CA00510A29 /* BackingStack.swift in Sources */,
+				84F5E0BE1C69F71C00510A29 /* SimpleCoreDataStack.swift in Sources */,
+				84F5E0C01C69F78400510A29 /* CoreDataConfig.swift in Sources */,
+				84F5E0C21C6A003100510A29 /* CoreDataRepresentable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
