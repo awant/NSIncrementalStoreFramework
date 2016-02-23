@@ -20,7 +20,7 @@ class BackingStack {
         for result in results {
             let resourceId = result.valueForKey(kResourceIdentifierAttributeName) as! String
             var values = [String : AnyObject]()
-            for (propertyName, property) in result.entity.propertiesByName {
+            for (propertyName, _) in result.entity.propertiesByName {
                 if propertyName == kResourceIdentifierAttributeName {
                     continue
                 }
