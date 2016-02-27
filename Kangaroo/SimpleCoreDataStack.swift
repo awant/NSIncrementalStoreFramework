@@ -2,14 +2,36 @@
 import Foundation
 import CoreData
 
+
+private
+class ManagerHolder {
+    static let managerController = ManagerHolder()
+    var manager: AnyObject?
+    
+    func coreDataManager<T: CoreDataConfig>() -> SimpleCoreDataStack<T> {
+        if let manager = self.manager as? SimpleCoreDataStack<T> {
+            return manager
+        } else {
+            let newManager: SimpleCoreDataStack<T> = SimpleCoreDataStack()
+            self.manager = newManager
+            return self.manager as! SimpleCoreDataStack<T>
+        }
+    }
+    
+}
+
 public
 class SimpleCoreDataManager<T: CoreDataConfig> {
-    private var simpleCoreDataStack = SimpleCoreDataStack<T>()
+    private var coreDataPrivateManager: SimpleCoreDataStack<T> {
+        return ManagerHolder.managerController.coreDataManager()
+    }
+    
+    //private var simpleCoreDataStack = SimpleCoreDataStack<T>()
     
     public init() {}
 
     private var moc: NSManagedObjectContext? {
-        return simpleCoreDataStack.managedObjectContext
+        return coreDataPrivateManager.managedObjectContext
     }
 }
 

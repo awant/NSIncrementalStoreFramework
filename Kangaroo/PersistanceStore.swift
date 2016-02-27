@@ -204,6 +204,7 @@ class PersistanceStore: NSIncrementalStore {
         guard let fetchRequest = request as? NSFetchRequest, entityName = fetchRequest.entityName else {
             return nil
         }
+        fetchRequest.predicate = getTranslatedPredicate(fetchRequest.predicate, withContext: context)
         
         if fetchRequest.resultType == .ManagedObjectResultType {
             var records: [String:[String:AnyObject]]!
@@ -313,6 +314,32 @@ class PersistanceStore: NSIncrementalStore {
         print("executeBatchUpdateRequest was called")
         return nil
     }
+    
+    // MARK: Supporting methods
+    
+    // TODO: to implement another types of predicates, now it is simple implementation
+    private func getTranslatedPredicate(rudePredicate: NSPredicate?, withContext context: NSManagedObjectContext) -> NSPredicate? {
+        print("getTranslatedPredicate was called")
+        guard let rudePredicate = rudePredicate else {
+            return nil
+        }
+        
+        if let comparisonPredicate = rudePredicate as? NSComparisonPredicate {
+            guard let objectId = comparisonPredicate.rightExpression.constantValue as? NSManagedObjectID else {
+                // TODO: add expression support
+                abort()
+            }
+            if context.objectRegisteredForID(objectId) != nil {
+                let resourceId = referenceObjectForObjectID(objectId) as! String
+                return NSPredicate(format: "%@ = %@", comparisonPredicate.leftExpression, resourceId)
+            } else {
+                abort()
+            }
+        }
+        
+        return NSPredicate(value: true)
+    }
+    
     
 //    private func getPredicateWithTranslatedIds(basicPredicate: NSPredicate, storage: IncrementalStorageProtocol) -> NSPredicate {
 //        print("getPredicateWithTranslatedIds was called")
