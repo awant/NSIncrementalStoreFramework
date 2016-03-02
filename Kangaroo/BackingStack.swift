@@ -5,8 +5,8 @@ let kResourceIdentifierAttributeName = "__resourceIdentifier__"
 
 class BackingStack {
     
-    var storeId: String
-    var managedObjectModel: NSManagedObjectModel
+    let storeId: String
+    let managedObjectModel: NSManagedObjectModel
     
     init(storeId: String, withMOM mom: NSManagedObjectModel) {
         self.storeId = storeId
@@ -61,7 +61,7 @@ class BackingStack {
             backingObject.setValue(key, forKey: kResourceIdentifierAttributeName)
             for (relationshipName, relationship) in entity.relationshipsByName {
                 guard let relationships = values[relationshipName] else {
-                    print("Can't find values in cloud for name: \(relationshipName)")
+                    assertionFailure("Can't find values in cloud for name: \(relationshipName)")
                     abort()
                 }
                 let translatedRelationships = self.updateObjectsForRelationship(relationshipName, relationships: relationships, relationshipDescription: relationship)
@@ -70,7 +70,7 @@ class BackingStack {
             
             for (attribName, _) in entity.attributesByName {
                 guard let object = values[attribName] else {
-                    print("Can't find values in cloud for name: \(attribName)")
+                    assertionFailure("Can't find values in cloud for name: \(attribName)")
                     abort()
                 }
                 backingObject.setValue(object, forKey: attribName)
