@@ -3,6 +3,7 @@ import Foundation
 import CoreData
 
 
+// MARK: Holder for Manager (can't create singleton with generic types)
 private
 class ManagerHolder {
     static let managerController = ManagerHolder()
@@ -25,9 +26,6 @@ class SimpleCoreDataManager<T: CoreDataConfig> {
     private var coreDataPrivateManager: SimpleCoreDataStack<T> {
         return ManagerHolder.managerController.coreDataManager()
     }
-    
-    //private var simpleCoreDataStack = SimpleCoreDataStack<T>()
-    
     public init() {}
 
     private var moc: NSManagedObjectContext? {
@@ -35,6 +33,8 @@ class SimpleCoreDataManager<T: CoreDataConfig> {
     }
 }
 
+
+// MARK: FetchRequests
 public
 extension SimpleCoreDataManager {
     func executeAsyncFetchRequest<T: CoreDataRepresentable>(predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?, completion: [T] -> Void) {
@@ -58,12 +58,29 @@ extension SimpleCoreDataManager {
 
         return try! moc!.executeFetchRequest(fetchRequest) as! [T]
     }
-    
-    func save() {
-        try! self.moc!.save()
-    }
 }
 
+
+// MARK: SaveRequests
+public
+extension SimpleCoreDataManager {
+    // TODO: create method
+    func insertAsyncNewObjectForEntityForName<T: CoreDataRepresentable>(completion: T -> Void) {
+        return
+    }
+    
+    func insertNewObjectForEntityForName<T: CoreDataRepresentable>() -> T {
+        return NSEntityDescription.insertNewObjectForEntityForName(T.entityName, inManagedObjectContext: moc!) as! T
+    }
+    
+    func saveChanges() {
+        try! self.moc!.save()
+    }
+    
+}
+
+
+// MARK: Core Data Stack
 private
 class SimpleCoreDataStack<T: CoreDataConfig>: NSObject {
     

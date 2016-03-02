@@ -94,7 +94,7 @@ class PersistanceStore: NSIncrementalStore {
     // Hold processing data with ids
     private var cache = Cache()
     
-    // What cache should we use
+    // What type of cache should we use
     private var cacheState: StorageCache {
         return PersistanceStoreRegistry.sharedInstance.cacheState!
     }
@@ -122,8 +122,8 @@ class PersistanceStore: NSIncrementalStore {
         return storage
     }
     
-    // MARK: - NSIncrementalStore Override functions
     
+    // MARK: - NSIncrementalStore Override functions
     override class func initialize() {
         NSPersistentStoreCoordinator.registerStoreClass(self, forStoreType: self.type)
     }
@@ -142,23 +142,12 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     override func newValuesForObjectWithID(objectID: NSManagedObjectID, withContext context: NSManagedObjectContext) throws -> NSIncrementalStoreNode {
-        print("newValuesForObjectWithID was called")
         let values = cache.getValuesFromObjectID(objectID)
         return NSIncrementalStoreNode(objectID: objectID, withValues: values, version: 1)
     }
     
     override func newValueForRelationship(relationship: NSRelationshipDescription, forObjectWithID objectID: NSManagedObjectID, withContext context: NSManagedObjectContext?) throws -> AnyObject {
-        print("newValueForRelationship was called")
-        // TODO: Change!
-//        if relationship.toMany {
-//            var keys: [AnyObject]!
-//            keys = storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name) as! [AnyObject]
-//            return keys.map({ self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: $0) } )
-//        } else {
-//            var key: AnyObject!
-//            key = storage.getKeyOfDestFrom(self.referenceObjectForObjectID(objectID) as! String, to: relationship.name)
-//            return self.newObjectIDForEntity(relationship.destinationEntity!, referenceObject: key)
-//        }
+        // TODO: implement
         return cache.valuesTable.keys.first!
     }
     
@@ -176,7 +165,6 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     func updateContextAndCache(fetchedRecords: [String:[String:AnyObject]], entityDescription: NSEntityDescription, context: NSManagedObjectContext) -> [NSManagedObject] {
-        print("updateContextAndCache was called")
         var newObjects = [NSManagedObject]()
         for record in fetchedRecords {
             if !cache.isResourceIdExist(entityDescription.name!, resourceId: record.0) {
@@ -189,7 +177,6 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     func getFetchedObjects(entityName: String, resourceIds: [String], context: NSManagedObjectContext) -> [NSManagedObject] {
-        print("getFetchedObjects was called")
         var retObjects = [NSManagedObject]()
         let objectsFromCache = cache.getObjectIds(entityName, resourceIds: resourceIds)
         for objectId in objectsFromCache {
@@ -200,7 +187,6 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     func executeFetchRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) throws -> AnyObject? {
-        print("executeFetchRequest was called")
         guard let fetchRequest = request as? NSFetchRequest, entityName = fetchRequest.entityName else {
             return nil
         }
@@ -236,13 +222,12 @@ class PersistanceStore: NSIncrementalStore {
     }
     
     func executeRemoteFetchRequest(fetchRequest: NSFetchRequest, context: NSManagedObjectContext) {
-        print("executeRemoteFetchRequest was called")
         let updateContexts = { (records: [String:[String:AnyObject]]) in
             self.backingStack.updateLocalCacheWithRecords(records, withRequest: fetchRequest)
             let newObjects = self.updateContextAndCache(records, entityDescription: fetchRequest.entity!, context: context)
             var userInfo = [NSObject : AnyObject]()
             userInfo[self.storage.newObjectsName] = newObjects
-            NSNotificationCenter.defaultCenter().postNotificationName(self.storage.fetchNotificationName, object: nil, userInfo: userInfo)
+            NSNotificationCenter.defaultCenter().postNotificationName(self.storage.RecordsWereReceivedNotification, object: nil, userInfo: userInfo)
         }
         
         let priority = DISPATCH_QUEUE_PRIORITY_DEFAULT
@@ -254,60 +239,57 @@ class PersistanceStore: NSIncrementalStore {
         }
     }
     
+    // save similarly to load
+    func saveObjects(objects: Set<NSManagedObject>, withContext context: NSManagedObjectContext) {
+        // TODO: think about .LocalCache
+        if cacheState != .NoCache {
+            abort()
+        }
+        var recordsForSave = [(name: String, atributes: [String : AnyObject])]()
+        for newObject in objects {
+            var attributes = [String : AnyObject]()
+            for attrib in newObject.entity.attributesByName {
+                // TODO: check attrib.1
+                attributes[attrib.0] = newObject.valueForKey(attrib.0)
+            }
+            for relationship in newObject.entity.relationshipsByName {
+                // TODO: translate relationships
+            }
+            recordsForSave += [(newObject.entity.name!, attributes)]
+        }
+        self.storage.saveRecords(recordsForSave)
+    }
     
+    // update request
+    func updateObjects(objects: Set<NSManagedObject>, withContext context: NSManagedObjectContext) {
+        print("updatedObjects")
+        abort()
+    }
     
-//    func objectIDForEntity(entity: NSEntityDescription, withResourceIdentifier identifier: String) -> NSManagedObjectID {
-//        print("objectIDForEntity")
-//        var objectId: NSManagedObjectID? = nil
-        
-//        if let objectIDsByResourceIdentifier = self.idTable[entity.name!] {
-//            objectId = objectIDsByResourceIdentifier[identifier]
-//        }
-        
-//        if objectId == nil {
-//            let resourceId = identifier
-//            objectId = self.newObjectIDForEntity(entity, referenceObject: resourceId)
-//            
-//            if self.idTable[entity.name!] == nil {
-//                idTable[entity.name!] = [identifier: objectId!]
-//            } else {
-//                idTable[entity.name!]![identifier] = objectId!
-//            }
-//        }
-//        
-//        return objectId!
-//    }
-    
-    
+    // delete request
+    func deleteObjects(objects: Set<NSManagedObject>, withContext context: NSManagedObjectContext) {
+        print("deletedObjects")
+        abort()
+    }
     
     func executeSaveRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) throws -> AnyObject? {
-        print("executeSaveRequest was called")
-//        guard let saveRequest = request as? NSSaveChangesRequest else {
-//            return nil
-//        }
-//        
-//        if let objectsForSave = saveRequest.insertedObjects {
-//            for newObject in objectsForSave {
-//                let attributes = self.objectDictionaryOfAttributes(newObject)
-//                let relations = self.objectDictionaryOfRelationShips(newObject)
-//                let key = objectStorageID(newObject)
-//                try storage.saveRecord(key, dictOfAttribs: attributes, dictOfRelats: relations)
-//            }
-//        }
-//        if let objectsForUpdate = saveRequest.updatedObjects {
-//            for updatedObject in objectsForUpdate {
-//                let key = objectStorageID(updatedObject)
-//                let attributes = self.objectDictionaryOfAttributes(updatedObject)
-//                let relations = self.objectDictionaryOfRelationShips(updatedObject)
-//                try storage.updateRecord(updatedObject, key: key, dictOfAttribs: attributes, dictOfRelats: relations)
-//            }
-//        }
-//        if let objectsForDelete = saveRequest.deletedObjects {
-//            for deletedObject in objectsForDelete {
-//                try storage.deleteRecord(deletedObject, key: objectStorageID(deletedObject))
-//            }
-//        }
-        return []
+        guard let saveRequest = request as? NSSaveChangesRequest else {
+            return nil
+        }
+        if let objectsForSave = saveRequest.insertedObjects {
+            saveObjects(objectsForSave, withContext: context)
+            return []
+        }
+        if let objectsForUpdate = saveRequest.updatedObjects {
+            updateObjects(objectsForUpdate, withContext: context)
+            return []
+        }
+        if let objectsForDelete = saveRequest.deletedObjects {
+            deleteObjects(objectsForDelete, withContext: context)
+            return []
+        }
+        print("Doesn't support 'lockedObjects' yet")
+        abort()
     }
     
     func executeBatchUpdateRequest(request: NSPersistentStoreRequest, withContext context: NSManagedObjectContext) -> AnyObject? {
@@ -317,9 +299,8 @@ class PersistanceStore: NSIncrementalStore {
     
     // MARK: Supporting methods
     
-    // TODO: to implement another types of predicates, now it is simple implementation
+    // TODO: to implement another types of predicates
     private func getTranslatedPredicate(rudePredicate: NSPredicate?, withContext context: NSManagedObjectContext) -> NSPredicate? {
-        print("getTranslatedPredicate was called")
         guard let rudePredicate = rudePredicate else {
             return nil
         }
@@ -339,56 +320,5 @@ class PersistanceStore: NSIncrementalStore {
         
         return NSPredicate(value: true)
     }
-    
-    
-//    private func getPredicateWithTranslatedIds(basicPredicate: NSPredicate, storage: IncrementalStorageProtocol) -> NSPredicate {
-//        print("getPredicateWithTranslatedIds was called")
-//        var wordsOfPredicate = basicPredicate.predicateFormat.componentsSeparatedByString(" ")
-//        for i in 0...wordsOfPredicate.count-2 {
-//            let objectIdDescription = wordsOfPredicate[i...i+1].joinWithSeparator(" ")
-//            if let key = correspondenceTable[objectIdDescription] {
-//                wordsOfPredicate.removeAtIndex(i)
-//                wordsOfPredicate[i] = key
-//            }
-//        }
-//        return storage.predicateProcessing(wordsOfPredicate.joinWithSeparator(" "))
-//    }
-//    
-//    func createObjects(entityName: String, context: NSManagedObjectContext, identifiers: [String]) -> [AnyObject] {
-//        print("createObjects was called")
-//        let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context)!
-//        return identifiers.map { key in
-//            let objectID = self.newObjectIDForEntity(entityDescription, referenceObject: key)
-//            self.correspondenceTable[objectID.description] = key
-//            return context.objectWithID(objectID)
-//        }
-//    }
-    
-//    func objectStorageID(object: NSManagedObject) -> String {
-//        print("objectStorageID was called")
-//        return referenceObjectForObjectID(object.objectID) as! String
-//    }
-    
-//    func objectDictionaryOfRelationShips(object: NSManagedObject) -> [String : [String]] {
-//        print("objectDictionaryOfRelationShips was called")
-//        let relationShipProperties = object.entity.properties.filter({ $0 as? NSRelationshipDescription != nil })
-//        return relationShipProperties.reduce([String : [String]]()) { (var previousValue, property) in
-//            previousValue[property.name] = object.objectIDsForRelationshipNamed(property.name).map {
-//                self.referenceObjectForObjectID($0) as! String
-//            }
-//            return previousValue
-//        }
-//    }
-    
-//    func objectDictionaryOfAttributes(object: NSManagedObject) -> [String : AnyObject] {
-//        print("objectDictionaryOfAttributes was called")
-//        let attributes = object.entity.properties.filter({ $0 as? NSAttributeDescription != nil })
-//        return attributes.reduce([:]) { (var previousValue: [String : AnyObject], propertyDescription) -> [String : AnyObject] in
-//            if let propertyValue = object.valueForKey(propertyDescription.name) {
-//                previousValue[propertyDescription.name] = propertyValue
-//            }
-//            return previousValue
-//        }
-//    }
     
 }

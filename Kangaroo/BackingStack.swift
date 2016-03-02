@@ -14,7 +14,6 @@ class BackingStack {
     }
     
     func getRecordsFromLocalCache(fetchRequest: NSFetchRequest) -> [String : [String : AnyObject]] {
-        print("getRecordsFromLocalCache was called")
         let results = try! backingManagedObjectContext.executeFetchRequest(fetchRequest) as! [NSManagedObject]
         var retResults = [String : [String : AnyObject]]()
         for result in results {
@@ -28,12 +27,10 @@ class BackingStack {
             }
             retResults[resourceId] = values
         }
-        print("getRecordsFromLocalCache was called, before retResults")
         return retResults
     }
     
     func isResourceIDExistInCache(resourceId: String, entityName: String) -> NSManagedObjectID? {
-        print("isResourceIDExistInCache")
         let localFetchRequest = NSFetchRequest(entityName: entityName)
         localFetchRequest.resultType = NSFetchRequestResultType.ManagedObjectIDResultType
         localFetchRequest.fetchLimit = 1
@@ -49,7 +46,6 @@ class BackingStack {
     }
     
     func updateLocalCacheWithRecords(records: [String:[String:AnyObject]], withRequest fetchRequest: NSFetchRequest) {
-        print("updateLocalCacheWithRecords was called")
         let entityName = fetchRequest.entityName!
         for record in records {
             if isResourceIDExistInCache(record.0, entityName: entityName) == nil {
@@ -83,7 +79,6 @@ class BackingStack {
     }
     
     func updateObjectsForRelationship(relationshipName: String, relationships: AnyObject, relationshipDescription: NSRelationshipDescription) -> AnyObject {
-        print("updateObjectsForRelationship")
         let destEntityName = relationshipDescription.destinationEntity!.name!
         if relationshipDescription.toMany {
             // TODO: Find - can be not NSSet
@@ -148,6 +143,7 @@ class BackingStack {
         // Now we should define mapping in model between id from Cloud and Objects
         // resourceId is id of object in cloud
         // TODO: add tracking state for updating (date or smth)
+        // TODO: add tracking is we save only locally or not
         for entity in cachedModel.entities {
             if entity.superentity != nil {
                 continue
