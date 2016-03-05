@@ -13,7 +13,7 @@ class BackingStack {
         self.managedObjectModel = mom
     }
     
-    func getRecordsFromLocalCache(fetchRequest: NSFetchRequest) -> [String : [String : AnyObject]] {
+    func getRecordsFromLocalCache(fetchRequest: NSFetchRequest) throws -> [String : [String : AnyObject]] {
         let results = try! backingManagedObjectContext.executeFetchRequest(fetchRequest) as! [NSManagedObject]
         var retResults = [String : [String : AnyObject]]()
         for result in results {
@@ -30,7 +30,7 @@ class BackingStack {
         return retResults
     }
     
-    func isResourceIDExistInCache(resourceId: String, entityName: String) -> NSManagedObjectID? {
+    func isResourceIDExistInCache(resourceId: String, entityName: String) throws -> Bool {
         let localFetchRequest = NSFetchRequest(entityName: entityName)
         localFetchRequest.resultType = NSFetchRequestResultType.ManagedObjectIDResultType
         localFetchRequest.fetchLimit = 1
@@ -38,17 +38,23 @@ class BackingStack {
         let predicate = NSPredicate(format: "%K = %@", kResourceIdentifierAttributeName, resourceId)
         localFetchRequest.predicate = predicate
         let objectLocalIds = try! backingManagedObjectContext.executeFetchRequest(localFetchRequest)
-        if objectLocalIds.isEmpty {
-            return nil
-        } else {
-            return (objectLocalIds.last as! NSManagedObjectID)
-        }
+        return !objectLocalIds.isEmpty
     }
     
-    func updateLocalCacheWithRecords(records: [String:[String:AnyObject]], withRequest fetchRequest: NSFetchRequest) {
+    func getManagedObjectId(resourceId: String, entityName: String) -> NSManagedObjectID {
+        let localFetchRequest = NSFetchRequest(entityName: entityName)
+        localFetchRequest.resultType = NSFetchRequestResultType.ManagedObjectIDResultType
+        localFetchRequest.fetchLimit = 1
+        let predicate = NSPredicate(format: "%K = %@", kResourceIdentifierAttributeName, resourceId)
+        localFetchRequest.predicate = predicate
+        let objectLocalIds = try! backingManagedObjectContext.executeFetchRequest(localFetchRequest)
+        return (objectLocalIds.last as! NSManagedObjectID)
+    }
+    
+    func updateLocalCacheWithRecords(records: [String:[String:AnyObject]], withRequest fetchRequest: NSFetchRequest) throws {
         let entityName = fetchRequest.entityName!
         for record in records {
-            if isResourceIDExistInCache(record.0, entityName: entityName) == nil {
+            if try! isResourceIDExistInCache(record.0, entityName: entityName) {
                 addNewRecord(record.1, withKey: record.0, withEntity: fetchRequest.entity!)
             }
         }
@@ -85,7 +91,8 @@ class BackingStack {
             let resourceIds = relationships as! NSSet
             let retObjects = NSMutableSet()
             for resourceId in resourceIds {
-                if let objectId = isResourceIDExistInCache(resourceId as! String, entityName: destEntityName) {
+                if try! isResourceIDExistInCache(resourceId as! String, entityName: destEntityName) {
+                    let objectId = self.getManagedObjectId(resourceId as! String, entityName: destEntityName)
                     retObjects.addObject(self.backingManagedObjectContext.objectWithID(objectId))
                 } else {
                     let backingObject = NSEntityDescription.insertNewObjectForEntityForName(destEntityName, inManagedObjectContext: self.backingManagedObjectContext)
@@ -96,7 +103,8 @@ class BackingStack {
             return retObjects
         } else {
             let resourceId = relationships as! String
-            if let objectId = isResourceIDExistInCache(resourceId, entityName: destEntityName) {
+            if try! isResourceIDExistInCache(resourceId, entityName: destEntityName) {
+                let objectId = self.getManagedObjectId(resourceId, entityName: destEntityName)
                 return self.backingManagedObjectContext.objectWithID(objectId)
             } else {
                 let backingObject = NSEntityDescription.insertNewObjectForEntityForName(destEntityName, inManagedObjectContext: self.backingManagedObjectContext)
@@ -106,18 +114,13 @@ class BackingStack {
         }
     }
     
-    lazy var applicationDocumentsDirectory: NSURL = {
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls[urls.count-1] as NSURL
-    }()
-    
     lazy var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator = {
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: self.cachedModel)
         
         var error: NSError? = nil
         let storeType = NSSQLiteStoreType
         let path = self.storeId + ".sqlite"
-        let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent(path)
+        let url = NSFileManager.applicationDocumentsDirectory.URLByAppendingPathComponent(path)
         let options = [NSMigratePersistentStoresAutomaticallyOption: NSNumber(bool: true),
             NSInferMappingModelAutomaticallyOption: NSNumber(bool: true)];
         
@@ -162,4 +165,13 @@ class BackingStack {
     }()
 }
 
+
+extension NSFileManager {
+    class var applicationDocumentsDirectory: NSURL {
+        get {
+            let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+            return urls[urls.count-1] as NSURL
+        }
+    }
+}
 

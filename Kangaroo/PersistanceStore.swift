@@ -198,7 +198,7 @@ class PersistanceStore: NSIncrementalStore {
             case .NoCache:
                 records = executeSyncFetchRequest(fetchRequest)
             case .LocalCache:
-                records = executeAsyncFetchRequest(fetchRequest, context: context)
+                records = try! executeAsyncFetchRequest(fetchRequest, context: context)
             }
             updateContextAndCache(records, entityDescription: fetchRequest.entity!, context: context)
             return getFetchedObjects(entityName, resourceIds: records.map{return $0.0}, context: context)
@@ -216,14 +216,14 @@ class PersistanceStore: NSIncrementalStore {
         return recordsFromStorage
     }
     
-    func executeAsyncFetchRequest(fetchRequest: NSFetchRequest, context: NSManagedObjectContext) -> [String:[String:AnyObject]] {
-        executeRemoteFetchRequest(fetchRequest, context: context)
-        return backingStack.getRecordsFromLocalCache(fetchRequest)
+    func executeAsyncFetchRequest(fetchRequest: NSFetchRequest, context: NSManagedObjectContext) throws -> [String:[String:AnyObject]] {
+        try! executeRemoteFetchRequest(fetchRequest, context: context)
+        return try! backingStack.getRecordsFromLocalCache(fetchRequest)
     }
     
-    func executeRemoteFetchRequest(fetchRequest: NSFetchRequest, context: NSManagedObjectContext) {
+    func executeRemoteFetchRequest(fetchRequest: NSFetchRequest, context: NSManagedObjectContext) throws {
         let updateContexts = { (records: [String:[String:AnyObject]]) in
-            self.backingStack.updateLocalCacheWithRecords(records, withRequest: fetchRequest)
+            try! self.backingStack.updateLocalCacheWithRecords(records, withRequest: fetchRequest)
             let newObjects = self.updateContextAndCache(records, entityDescription: fetchRequest.entity!, context: context)
             var userInfo = [NSObject : AnyObject]()
             userInfo[self.storage.newObjectsName] = newObjects
